@@ -18,6 +18,7 @@ namespace xrt::core::hip {
 
 // command_handle - opaque command handle
 using command_handle = void*;
+using event_handle = void*;
 
 class command
 {
@@ -28,7 +29,7 @@ public:
     recorded,
     running,
     completed,
-    success,
+    success,// double check if needed
     error,
     abort
   };
@@ -40,15 +41,29 @@ public:
     kernel_start
   };
 
-private:
   std::shared_ptr<stream> cstream;
-  uint64_t ctime;
   type ctype;
+  
+private:
+  uint64_t ctime;
   state cstate;
 
+
 public:
+  command(std::shared_ptr<stream> &&s)
+    : cstream{std::move(s)}
+    , cstate{state::init}
+  {}
+  
+  command()
+    : cstate{state::init}
+  {}
+  
   virtual bool submit(bool) = 0;
   virtual bool wait() = 0;
+  virtual void record(std::shared_ptr<stream>) = 0;
+  virtual bool synchronize() = 0;
+  virtual bool query() = 0;
   state get_state() { return cstate; }
   void set_state(state newstate) { cstate = newstate; };
 
@@ -57,19 +72,20 @@ public:
 class event : public command
 {
 private:
-  std::shared_ptr<stream> m_stream;
+  std::mutex m_mutex;
   std::vector<std::shared_ptr<command>> recorded_commands;
   std::vector<std::shared_ptr<command>> chain_of_commands;
 
 public:
-  event(std::shared_ptr<stream>&& s);
+  event();
 
   void
-  record();
+  record(std::shared_ptr<stream> s) override;
 
-  bool submit(bool) override = 0;
+  bool submit(bool) override;
   bool wait() override;
-  bool synchronize();
+  bool synchronize() override;
+  bool query() override;
 
   bool is_recorded();
 
@@ -80,7 +96,7 @@ public:
   add_to_chain(std::shared_ptr<command> cmd);
 
   void
-  add_dependency(std::shared_ptr<command>&& cmd);
+  add_dependency(std::shared_ptr<command> cmd);
 };
 
 class kernel_start : public command

@@ -4,19 +4,62 @@
 #include "event.h"
 
 namespace xrt::core::hip {
+event::
+event()
+//  : ctype{type::event}
+{}
+
+void
+event::
+record(std::shared_ptr<stream> s)
+{
+  cstream = std::move(s);
+  auto ev = std::dynamic_pointer_cast<event>(command_cache.get(static_cast<command_handle>(this)));
+  throw_invalid_handle_if(!ev, "event passed is invalid");
+  if (is_recorded()) {
+    // already recorded
+    cstream->erase_cmd(ev);
+  }
+  // update recorded commands list
+  cstream->enqueue_event(std::move(ev));
+  set_state(state::recorded);
+  //return true;
+}
+
+bool
+event::
+is_recorded()
+{
+  return get_state() >= command::state::recorded;
+}
+
+bool
+event::
+query()
+{
+  for (auto it = recorded_commands.begin(); it != recorded_commands.end(); it++){
+    state command_state = (*it)->get_state();
+    if (command_state != state::completed){
+      return false;
+    }
+  }
+  return true;
+}
+
 bool
 event::
 synchronize()
 {
-  for(auto it = recorded_commands.begin(); it != recorded_commands.end(); it++){
+  for (auto it = recorded_commands.begin(); it != recorded_commands.end(); it++){
     state command_state = (*it)->get_state();
-    while(command_state != state::completed){
-      command_state = (*it)->get_state();
+    if (command_state < state::completed){
+      (*it)->wait();
+      (*it)->set_state(state::completed);
     }
   }
   set_state(state::success);
-  for(auto it = chain_of_commands.begin(); it != chain_of_commands.end(); it++){
-    (*it)->submit(true);//not sure if true as input is fine. temporary!
+  for (auto it = chain_of_commands.begin(); it != chain_of_commands.end(); it++){
+    (*it)->submit(true);
   }
   return true;
 }
@@ -28,8 +71,37 @@ wait()
   return synchronize();
 }
 
+bool
+event::
+submit(bool)
+{
+  return true;
+}
+
+std::shared_ptr<stream>
+event::
+get_stream()
+{
+  return cstream;
+}
+
+void
+event::
+add_to_chain(std::shared_ptr<command> cmd)
+{
+  // lock and add
+}
+
+void
+event::
+add_dependency(std::shared_ptr<command> cmd)
+{
+  // lock and add
+}
+
 kernel_start::
 kernel_start(std::shared_ptr<stream>&& s, std::shared_ptr<function> &&f, void** args)
+  : command(std::move(s))
 {
     //xrt::kernel k = f->get_kernel();
     xrt::kernel k; // just for compilation purpose we have to get it from function.
