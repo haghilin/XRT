@@ -29,7 +29,6 @@ public:
     recorded,
     running,
     completed,
-    success,// double check if needed
     error,
     abort
   };
@@ -41,13 +40,11 @@ public:
     kernel_start
   };
 
+protected:
   std::shared_ptr<stream> cstream;
   type ctype;
-  
-private:
   uint64_t ctime;
   state cstate;
-
 
 public:
   command(std::shared_ptr<stream> &&s)

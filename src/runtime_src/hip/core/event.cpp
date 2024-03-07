@@ -7,8 +7,9 @@ namespace xrt::core::hip {
 event::
 event(std::shared_ptr<stream>&& s)
   : command(std::move(s))
-//  : ctype{type::event}
-{}
+{
+  ctype = type::event;
+}
 
 void
 event::
@@ -58,7 +59,7 @@ synchronize()
       (*it)->set_state(state::completed);
     }
   }
-  set_state(state::success);
+  set_state(state::completed);
   for (auto it = chain_of_commands.begin(); it != chain_of_commands.end(); it++){
     (*it)->submit(true);
   }
