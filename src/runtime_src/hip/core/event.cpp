@@ -5,7 +5,8 @@
 
 namespace xrt::core::hip {
 event::
-event()
+event(std::shared_ptr<stream>&& s)
+  : command(std::move(s))
 //  : ctype{type::event}
 {}
 

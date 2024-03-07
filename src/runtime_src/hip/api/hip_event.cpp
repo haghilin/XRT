@@ -11,11 +11,10 @@
 
 namespace xrt::core::hip {
 
-static std::shared_ptr<event>
+static command_handle
 hip_event_create()
 {
-  auto hip_event = std::make_shared<event>();
-  return hip_event;
+  return insert_in_map(command_cache, std::make_shared<event>(nullptr));;
 }
 
 static void
@@ -76,8 +75,7 @@ hipEventCreate(hipEvent_t* event)
       throw xrt_core::system_error(hipErrorInvalidValue, "event passed is nullptr");
 
     auto handle = xrt::core::hip::hip_event_create();
-    *event = reinterpret_cast<hipEvent_t>(handle.get());// Is this fine?
-
+    *event = reinterpret_cast<hipEvent_t>(handle);
     return hipSuccess;
   }
   catch (const xrt_core::system_error& ex) {

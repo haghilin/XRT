@@ -55,10 +55,6 @@ public:
     , cstate{state::init}
   {}
   
-  command()
-    : cstate{state::init}
-  {}
-  
   virtual bool submit(bool) = 0;
   virtual bool wait() = 0;
   virtual void record(std::shared_ptr<stream>) = 0;
@@ -77,7 +73,7 @@ private:
   std::vector<std::shared_ptr<command>> chain_of_commands;
 
 public:
-  event();
+  event(std::shared_ptr<stream>&& s);
 
   void
   record(std::shared_ptr<stream> s) override;
