@@ -7,9 +7,11 @@
 #include "module.h"
 #include "stream.h"
 #include "xrt/xrt_kernel.h"
+#include "xrt/xrt_bo.h"
 #include "core/common/api/kernel_int.h"
 
 #include <condition_variable>
+#include <future>
 #include <memory>
 #include <mutex>
 #include <vector>
@@ -107,9 +109,11 @@ public:
 class copy_buffer : public command
 {
 public:
+  copy_buffer(std::shared_ptr<stream>&& s);
   bool submit(bool) override;
   bool wait() override;
-
+private:
+  std::future<void> handle;
 };
 
 // Global map of commands

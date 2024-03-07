@@ -106,6 +106,7 @@ kernel_start(std::shared_ptr<stream>&& s, std::shared_ptr<function> &&f, void** 
   : command(std::move(s))
 {
     //xrt::kernel k = f->get_kernel();
+    ctype = type::kernel_start;
     xrt::kernel k; // just for compilation purpose we have to get it from function.
     const auto& m_arginfo = std::move(xrt_core::kernel_int::get_args(k));
     size_t idx = 0;
@@ -143,18 +144,27 @@ wait()
   return false;
 }
 
+copy_buffer::
+copy_buffer(std::shared_ptr<stream>&& s)//direction cdirection
+  : command(std::move(s))
+{
+  ctype = type::buffer_copy;
+}
+
 bool
 copy_buffer::
-submit(bool)
+submit(bool)//, xrt::bo boc, direction cdirection)
 {
-    return true; //temporary
+  //handle = std::future<bo.sync(cdirection)>;
+  return true;
 }
 
 bool
 copy_buffer::
 wait()
 {
-    return true; //temporary
+  handle.wait();
+  return true;
 }
 
 // Global map of commands
