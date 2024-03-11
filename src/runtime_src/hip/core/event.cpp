@@ -70,6 +70,7 @@ bool
 event::
 wait()
 {
+  ctime = std::chrono::system_clock::now();
   return synchronize();
 }
 
@@ -101,6 +102,15 @@ add_dependency(std::shared_ptr<command> cmd)
   // lock and add
 }
 
+float
+event::
+elapsedtimecalc (std::shared_ptr<command> end)
+{
+  auto duration = end->get_time() - this->get_time();
+  auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
+  return millis;
+}
+
 kernel_start::
 kernel_start(std::shared_ptr<stream>&& s, std::shared_ptr<function> &&f, void** args)
   : command(std::move(s))
@@ -114,6 +124,31 @@ kernel_start(std::shared_ptr<stream>&& s, std::shared_ptr<function> &&f, void** 
         xrt_core::kernel_int::set_arg_at_index(r, (*itr)->index, args[idx], (*itr)->size);
     }
     r = xrt::run(k);
+    r.start();
+      //auto arg = (*itr);
+      /*if (arg->index != xarg::no_index) {
+        switch (arg->type) {
+        case xarg::argtype::scalar :
+          //if (arg->index == m_indexed_xargs)
+          m_indexed_xargs.emplace_back(std::make_unique<scalar_type>(arg));
+          //else
+           // m_indexed_xargs.back()->add(arg);  // multi compoment arg, eg. long2, long4, etc.
+          //  break;
+        case xarg::argtype::global :
+        case xarg::argtype::constant :
+          // m_indexed_xargs.emplace_back(std::make_unique<global_xargument>(this, arg));
+           break;
+        case xarg::argtype::local :
+          // m_indexed_xargs.emplace_back(std::make_unique<local_xargument>(this, arg));
+           break;
+        case xarg::argtype::stream :
+          // m_indexed_xargs.emplace_back(std::make_unique<stream_xargument>(this, arg));
+           break;
+        }
+      }
+    xrt_core::kernel_int::set_arg_at_index(r, (*itr)->index, args[idx], (*itr)->size);
+      }
+    r = xrt::run(k);*/
 }
 
 bool

@@ -9,6 +9,7 @@
 #include "xrt/xrt_kernel.h"
 #include "xrt/xrt_bo.h"
 #include "core/common/api/kernel_int.h"
+//#include "core/common/xclbin_parser.h"
 
 #include <condition_variable>
 #include <future>
@@ -16,6 +17,10 @@
 #include <mutex>
 #include <vector>
 
+using xarg = xrt_core::xclbin::kernel_argument;
+
+using xargument_value_type = std::unique_ptr<xarg>;
+using xargument_vector_type = std::vector<xargument_value_type>;
 namespace xrt::core::hip {
 
 // command_handle - opaque command handle
@@ -45,7 +50,7 @@ public:
 protected:
   std::shared_ptr<stream> cstream;
   type ctype;
-  uint64_t ctime;
+  std::chrono::time_point<std::chrono::system_clock> ctime;
   state cstate;
 
 public:
@@ -59,7 +64,9 @@ public:
   virtual void record(std::shared_ptr<stream>) = 0;
   virtual bool synchronize() = 0;
   virtual bool query() = 0;
+  virtual float elapsedtimecalc (std::shared_ptr<command> end) = 0;
   state get_state() { return cstate; }
+  std::chrono::time_point<std::chrono::system_clock> get_time() { return ctime; }
   void set_state(state newstate) { cstate = newstate; };
 
 };
@@ -92,6 +99,9 @@ public:
 
   void
   add_dependency(std::shared_ptr<command> cmd);
+
+  float
+  elapsedtimecalc (std::shared_ptr<command> end);
 };
 
 class kernel_start : public command
@@ -99,6 +109,7 @@ class kernel_start : public command
 private:
   std::shared_ptr<function> func;
   xrt::run r;
+  xargument_vector_type m_indexed_xargs;
 
 public:
   kernel_start(std::shared_ptr<stream>&& s, std::shared_ptr<function> &&f, void** args);

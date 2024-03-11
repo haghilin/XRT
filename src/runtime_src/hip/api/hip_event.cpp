@@ -47,7 +47,9 @@ hip_event_elapsed_time(hipEvent_t start, hipEvent_t stop)
 {
   throw_invalid_value_if(!start, "start event passed is nullptr");
   throw_invalid_value_if(!stop, "stop event passed is nullptr");
-  throw std::runtime_error("Not implemented");
+  auto hip_start_event_cmd = command_cache.get(start);
+  auto hip_stop_event_cmd = command_cache.get(stop);
+  return hip_start_event_cmd->elapsedtimecalc(hip_stop_event_cmd);
 }
 
 static unsigned short
