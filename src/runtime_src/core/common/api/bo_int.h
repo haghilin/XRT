@@ -28,6 +28,10 @@ XRT_CORE_COMMON_EXPORT
 xrt::bo
 create_debug_bo(const xrt::hw_context& hwctx, size_t sz);
 
+XRT_CORE_COMMON_EXPORT
+xrt::bo
+create_kmd_bo(const xrt::hw_context& hwctx, size_t sz);
+
 } // bo_int, xrt_core
 
 #endif

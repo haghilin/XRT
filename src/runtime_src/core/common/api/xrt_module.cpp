@@ -1019,6 +1019,7 @@ class module_sram : public module_impl
   xrt::bo m_scratch_pad_mem;
   xrt::bo m_preempt_save_bo;
   xrt::bo m_preempt_restore_bo;
+  xrt::bo m_patching_table_bo;
 
   // map of ctrlpkt preemption buffers
   // key : dynamic symbol patch name of ctrlpkt-pm
@@ -1431,6 +1432,8 @@ class module_sram : public module_impl
   }
 
 public:
+//before creating bo we need to know what is the size of bo elf file will let us know (I am working on it)
+//we will call the function to creat the bo and then need to populate the table
   module_sram(std::shared_ptr<module_impl> parent, xrt::hw_context hwctx)
     : module_impl{ parent->get_cfg_uuid() }
     , m_parent{ std::move(parent) }

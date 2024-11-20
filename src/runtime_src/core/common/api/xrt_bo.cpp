@@ -1695,6 +1695,21 @@ create_debug_bo(const xrt::hw_context& hwctx, size_t sz)
   return xrt::bo{alloc(device_type{hwctx}, sz, flags.all, 1)};
 }
 
+xrt::bo
+create_kmd_bo(const xrt::hw_context& hwctx, size_t sz)
+{
+  xcl_bo_flags flags {0};  // see xrt_mem.h
+  flags.flags = XRT_BO_FLAGS_CARVEOUT;
+  flags.access = XRT_BO_ACCESS_LOCAL;
+  flags.dir = XRT_BO_ACCESS_READ_WRITE;
+  flags.use = XRT_BO_USE_KMD;
+
+  // While the memory group should be ignored (inferred) for debug
+  // buffers, it is still passed in as a default group 1 with no
+  // implied correlation to xclbin connectivity or memory group.
+  return xrt::bo{alloc(device_type{hwctx}, sz, flags.all, 1)};
+}
+
 } // xrt_core::bo_int
 
 ////////////////////////////////////////////////////////////////
